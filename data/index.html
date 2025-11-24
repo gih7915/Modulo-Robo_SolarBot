@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Monitoramento de Robôs</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon"></span>
+                    <h1>Sistema de Monitoramento de Robôs</h1>
+                </div>
+                <div class="user-info">
+                    <img src="logo_solarbot.png" alt="Solar Bot" class="company-logo">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="robots-panel">
+                <h2>Robôs Disponíveis</h2>
+                <ul class="robot-list">
+                    <li class="robot-item active" data-robot="robo001">
+                        <span>Robô 001</span>
+                        <div class="robot-status"></div>
+                    </li>
+                    <li class="robot-item" data-robot="robo002">
+                        <span>Robô 002</span>
+                        <div class="robot-status warning"></div>
+                    </li>
+                    <li class="robot-item" data-robot="robo003">
+                        <span>Robô 003</span>
+                        <div class="robot-status"></div>
+                    </li>
+                    <li class="robot-item" data-robot="robo004">
+                        <span>Robô 004</span>
+                        <div class="robot-status offline"></div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="dashboard">
+                <div class="dashboard-header">
+                    <h2>Dashboard de Operação - <span class="robot-id">Robô 001</span></h2>
+                    <button class="export-btn">Exportar Dados</button>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="metric-card">
+                        <h3>Temperatura</h3>
+                        <div class="metric-value">42.5<span class="metric-unit">°C</span></div>
+                        <div class="metric-trend trend-up">+2.3°C desde última medição</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Tensão</h3>
+                        <div class="metric-value">24.3<span class="metric-unit">V</span></div>
+                        <div class="metric-trend">Estável</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Corrente</h3>
+                        <div class="metric-value">3.7<span class="metric-unit">A</span></div>
+                        <div class="metric-trend trend-down">-0.2A desde última medição</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Tempo de Operação</h3>
+                        <div class="metric-value">127<span class="metric-unit">h</span></div>
+                        <div class="metric-trend">Contínuo</div>
+                    </div>
+                </div>
+
+                <div class="gps-section">
+                    <h3>Localização GPS</h3>
+                    <div class="map-placeholder">
+                        Mapa com localização do robô
+                    </div>
+                    <div class="gps-details">
+                        <p><strong>Coordenadas:</strong> -15.7801, -47.9292</p>
+                        <p><strong>Precisão:</strong> ± 2.5m</p>
+                        <p><strong>Última atualização:</strong> 10:45:23</p>
+                    </div>
+                </div>
+
+                <h3>Histórico de Operação</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Temperatura (°C)</th>
+                            <th>Tensão (V)</th>
+                            <th>Corrente (A)</th>
+                            <th>Localização</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>25/10/2025 10:45</td>
+                            <td>42.5</td>
+                            <td>24.3</td>
+                            <td>3.7</td>
+                            <td>-15.7801, -47.9292</td>
+                        </tr>
+                        <tr>
+                            <td>25/10/2025 10:30</td>
+                            <td>40.2</td>
+                            <td>24.5</td>
+                            <td>3.9</td>
+                            <td>-15.7798, -47.9289</td>
+                        </tr>
+                        <tr>
+                            <td>25/10/2025 10:15</td>
+                            <td>38.7</td>
+                            <td>24.4</td>
+                            <td>4.1</td>
+                            <td>-15.7795, -47.9285</td>
+                        </tr>
+                        <tr>
+                            <td>25/10/2025 10:00</td>
+                            <td>37.2</td>
+                            <td>24.6</td>
+                            <td>3.8</td>
+                            <td>-15.7792, -47.9281</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const robotItems = document.querySelectorAll('.robot-item');
+            
+            robotItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    robotItems.forEach(i => i.classList.remove('active'));
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Update robot ID in dashboard
+                    const robotId = this.getAttribute('data-robot');
+                    document.querySelector('.robot-id').textContent = robotId.charAt(0).toUpperCase() + robotId.slice(1);
+                    
+                    // In a real application, you would fetch data for the selected robot here
+                    // and update all the metrics accordingly
+                });
+            });
+            
+            // Export button functionality
+            document.querySelector('.export-btn').addEventListener('click', function() {
+                alert('Funcionalidade de exportação será implementada em breve!');
+            });
+        });
+    </script>
+</body>
+</html>
