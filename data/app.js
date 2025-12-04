@@ -1,0 +1,81 @@
+function fetchAll() {
+  fetch('/api/all')
+    .then(r => r.json())
+    .then(data => {
+      const tEl = document.getElementById('tempValue');
+      if (data.temperature_ok) {
+        const prev = parseFloat(tEl.textContent);
+        tEl.textContent = data.temperature.toFixed(2);
+        const trendEl = document.getElementById('tempTrend');
+        if (!isNaN(prev)) {
+          const diff = data.temperature - prev;
+          if (Math.abs(diff) < 0.01) {
+            trendEl.textContent = 'Estável';
+            trendEl.className = 'metric-trend';
+          } else if (diff > 0) {
+            trendEl.textContent = '+' + diff.toFixed(2) + '°C';
+            trendEl.className = 'metric-trend trend-up';
+          } else {
+            trendEl.textContent = diff.toFixed(2) + '°C';
+            trendEl.className = 'metric-trend trend-down';
+          }
+        }
+      }
+      // GPS
+      const gps = data.gps || {};
+      const hasCoords = (typeof gps.lat === 'number') && (typeof gps.lng === 'number');
+      document.getElementById('gpsCoords').textContent = hasCoords ? (gps.lat.toFixed(6) + ', ' + gps.lng.toFixed(6)) : '--, --';
+      const satVal = (typeof gps.satellites === 'number' && gps.satellites >= 0) ? gps.satellites : '--';
+      document.getElementById('gpsSat').textContent = satVal;
+      document.getElementById('gpsUTC').textContent = gps.utc || '--';
+      document.getElementById('lastUpdate').textContent = data.timestamp || '--';
+    })
+    .catch(err => console.error('Erro fetch /api/all', err));
+}
+
+function loadHistory() {
+  fetch('/export?format=csv')
+    .then(r => r.text())
+    .then(text => {
+      const lines = text.trim().split('\n');
+      if (lines.length <= 1) return; // only header
+      const body = document.getElementById('historyBody');
+      body.innerHTML = '';
+      const header = lines[0].split(',');
+      const rows = lines.slice(1).slice(-20); // last 20
+      rows.forEach(line => {
+        const cols = line.split(',');
+        const tr = document.createElement('tr');
+        // timestamp,temperature,lat,lng,satellites,fix
+        for (let i = 0; i < cols.length; i++) {
+          const td = document.createElement('td');
+          const raw = cols[i];
+          const val = (raw === undefined || raw === null || raw.trim() === '') ? '--' : raw;
+          td.textContent = val;
+          tr.appendChild(td);
+        }
+        body.appendChild(tr);
+      });
+    })
+    .catch(err => console.error('Erro carregar histórico', err));
+}
+
+function setupExportButtons() {
+  const btnCSV = document.getElementById('btnExportCSV');
+  const btnJSON = document.getElementById('btnExportJSON');
+  btnCSV.addEventListener('click', () => {
+    window.location.href = '/export?format=csv';
+  });
+  btnJSON.addEventListener('click', () => {
+    window.location.href = '/export?format=json';
+  });
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+  setupExportButtons();
+  fetchAll();
+  loadHistory();
+  setInterval(fetchAll, 3000);
+  setInterval(loadHistory, 7000);
+});

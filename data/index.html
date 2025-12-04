@@ -48,29 +48,30 @@
             <div class="dashboard">
                 <div class="dashboard-header">
                     <h2>Dashboard de Operação - <span class="robot-id">Robô 001</span></h2>
-                    <button class="export-btn">Exportar Dados</button>
+                    <button class="export-btn" id="btnExportCSV">Exportar CSV</button>
+                    <button class="export-btn" id="btnExportJSON" style="margin-left:8px; background:#16a085;">Exportar JSON</button>
                 </div>
 
                 <div class="dashboard-grid">
                     <div class="metric-card">
                         <h3>Temperatura</h3>
-                        <div class="metric-value">42.5<span class="metric-unit">°C</span></div>
-                        <div class="metric-trend trend-up">+2.3°C desde última medição</div>
+                        <div class="metric-value"><span id="tempValue">--</span><span class="metric-unit">°C</span></div>
+                        <div class="metric-trend" id="tempTrend">Aguardando primeira leitura...</div>
                     </div>
                     <div class="metric-card">
                         <h3>Tensão</h3>
-                        <div class="metric-value">24.3<span class="metric-unit">V</span></div>
-                        <div class="metric-trend">Estável</div>
+                        <div class="metric-value">--<span class="metric-unit">V</span></div>
+                        <div class="metric-trend">--</div>
                     </div>
                     <div class="metric-card">
                         <h3>Corrente</h3>
-                        <div class="metric-value">3.7<span class="metric-unit">A</span></div>
-                        <div class="metric-trend trend-down">-0.2A desde última medição</div>
+                        <div class="metric-value">--<span class="metric-unit">A</span></div>
+                        <div class="metric-trend">--</div>
                     </div>
                     <div class="metric-card">
                         <h3>Tempo de Operação</h3>
-                        <div class="metric-value">127<span class="metric-unit">h</span></div>
-                        <div class="metric-trend">Contínuo</div>
+                        <div class="metric-value">--<span class="metric-unit">h</span></div>
+                        <div class="metric-trend">--</div>
                     </div>
                 </div>
 
@@ -80,84 +81,31 @@
                         Mapa com localização do robô
                     </div>
                     <div class="gps-details">
-                        <p><strong>Coordenadas:</strong> -15.7801, -47.9292</p>
-                        <p><strong>Precisão:</strong> ± 2.5m</p>
-                        <p><strong>Última atualização:</strong> 10:45:23</p>
+                        <p><strong>Coordenadas:</strong> <span id="gpsCoords">--, --</span></p>
+                        <p><strong>Satélites:</strong> <span id="gpsSat">--</span></p>
+                        <p><strong>Hora UTC:</strong> <span id="gpsUTC">--</span></p>
+                        <p><strong>Última atualização:</strong> <span id="lastUpdate">--</span></p>
                     </div>
                 </div>
 
-                <h3>Histórico de Operação</h3>
-                <table class="data-table">
+                <h3>Histórico (últimas 20 linhas)</h3>
+                <table class="data-table" id="historyTable">
                     <thead>
                         <tr>
-                            <th>Data/Hora</th>
-                            <th>Temperatura (°C)</th>
-                            <th>Tensão (V)</th>
-                            <th>Corrente (A)</th>
-                            <th>Localização</th>
+                            <th>Timestamp</th>
+                            <th>Temp (°C)</th>
+                            <th>Lat</th>
+                            <th>Lng</th>
+                            <th>Sat</th>
+                            <th>Fix</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>25/10/2025 10:45</td>
-                            <td>42.5</td>
-                            <td>24.3</td>
-                            <td>3.7</td>
-                            <td>-15.7801, -47.9292</td>
-                        </tr>
-                        <tr>
-                            <td>25/10/2025 10:30</td>
-                            <td>40.2</td>
-                            <td>24.5</td>
-                            <td>3.9</td>
-                            <td>-15.7798, -47.9289</td>
-                        </tr>
-                        <tr>
-                            <td>25/10/2025 10:15</td>
-                            <td>38.7</td>
-                            <td>24.4</td>
-                            <td>4.1</td>
-                            <td>-15.7795, -47.9285</td>
-                        </tr>
-                        <tr>
-                            <td>25/10/2025 10:00</td>
-                            <td>37.2</td>
-                            <td>24.6</td>
-                            <td>3.8</td>
-                            <td>-15.7792, -47.9281</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="historyBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const robotItems = document.querySelectorAll('.robot-item');
-            
-            robotItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // Remove active class from all items
-                    robotItems.forEach(i => i.classList.remove('active'));
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Update robot ID in dashboard
-                    const robotId = this.getAttribute('data-robot');
-                    document.querySelector('.robot-id').textContent = robotId.charAt(0).toUpperCase() + robotId.slice(1);
-                    
-                    // In a real application, you would fetch data for the selected robot here
-                    // and update all the metrics accordingly
-                });
-            });
-            
-            // Export button functionality
-            document.querySelector('.export-btn').addEventListener('click', function() {
-                alert('Funcionalidade de exportação será implementada em breve!');
-            });
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
