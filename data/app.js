@@ -2,8 +2,9 @@ function fetchAll() {
   fetch('/api/all')
     .then(r => r.json())
     .then(data => {
+      // Temperatura
       const tEl = document.getElementById('tempValue');
-      if (data.temperature_ok) {
+      if (data.temperature_ok && data.temperature !== null) {
         const prev = parseFloat(tEl.textContent);
         tEl.textContent = data.temperature.toFixed(2);
         const trendEl = document.getElementById('tempTrend');
@@ -21,6 +22,49 @@ function fetchAll() {
           }
         }
       }
+      
+      // Pressão
+      const pEl = document.getElementById('pressureValue');
+      if (data.pressure !== null && data.pressure !== undefined) {
+        const prev = parseFloat(pEl.textContent);
+        pEl.textContent = data.pressure.toFixed(2);
+        const trendEl = document.getElementById('pressureTrend');
+        if (!isNaN(prev)) {
+          const diff = data.pressure - prev;
+          if (Math.abs(diff) < 0.1) {
+            trendEl.textContent = 'Estável';
+            trendEl.className = 'metric-trend';
+          } else if (diff > 0) {
+            trendEl.textContent = '+' + diff.toFixed(2) + ' hPa';
+            trendEl.className = 'metric-trend trend-up';
+          } else {
+            trendEl.textContent = diff.toFixed(2) + ' hPa';
+            trendEl.className = 'metric-trend trend-down';
+          }
+        }
+      }
+      
+      // Altitude
+      const aEl = document.getElementById('altitudeValue');
+      if (data.altitude !== null && data.altitude !== undefined) {
+        const prev = parseFloat(aEl.textContent);
+        aEl.textContent = data.altitude.toFixed(1);
+        const trendEl = document.getElementById('altitudeTrend');
+        if (!isNaN(prev)) {
+          const diff = data.altitude - prev;
+          if (Math.abs(diff) < 0.5) {
+            trendEl.textContent = 'Estável';
+            trendEl.className = 'metric-trend';
+          } else if (diff > 0) {
+            trendEl.textContent = '+' + diff.toFixed(1) + ' m';
+            trendEl.className = 'metric-trend trend-up';
+          } else {
+            trendEl.textContent = diff.toFixed(1) + ' m';
+            trendEl.className = 'metric-trend trend-down';
+          }
+        }
+      }
+      
       // GPS
       const gps = data.gps || {};
       const hasCoords = (typeof gps.lat === 'number') && (typeof gps.lng === 'number');
@@ -46,7 +90,7 @@ function loadHistory() {
       rows.forEach(line => {
         const cols = line.split(',');
         const tr = document.createElement('tr');
-        // timestamp,temperature,lat,lng,satellites,fix
+        // timestamp,temperature,pressure,lat,lng,satellites,fix
         for (let i = 0; i < cols.length; i++) {
           const td = document.createElement('td');
           const raw = cols[i];

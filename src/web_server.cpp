@@ -2,12 +2,11 @@
 #include <Arduino.h>
 #include <FS.h>
 #include <LittleFS.h>
-#include <DallasTemperature.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
-#include "ds18b20.h"
+#include "bmp280.h"
 #include "gps.h"
 #include "web_server.h"
 #include "config.h"
@@ -58,7 +57,7 @@ void log_measurement(float temperature) {
     if (!LittleFS.exists(LOG_FILE)) {
         File f = LittleFS.open(LOG_FILE, "w");
         if (f) {
-            f.println("timestamp,temperature,lat,lng,satellites,fix");
+            f.println("timestamp,temperature,pressure,lat,lng,satellites,fix");
             f.close();
         }
     }
@@ -67,17 +66,17 @@ void log_measurement(float temperature) {
     if (!f) return;
     String ts = currentTimestamp();
     String line;
-    line.reserve(96);
+    line.reserve(128);
     line += ts; line += ",";
-    if (temperature != DEVICE_DISCONNECTED_C) {
-        line += String(temperature, 2);
-    }
+    line += String(temperature, 2);
+    line += ",";
+    line += String(bmp280_readPressure(), 2);
     line += ",";
     if (gps.location.isValid()) {
         line += String(gps.location.lat(), 6); line += ",";
         line += String(gps.location.lng(), 6);
     } else {
-        line += ","; // lat vazio e cairá em vírgula antes de lng
+        line += ",";
     }
     line += ",";
     if (gps.satellites.isValid()) {
@@ -91,11 +90,14 @@ void log_measurement(float temperature) {
 }
 
 static String jsonTemperature() {
-    float t = ds18_readTemperature();
-    DynamicJsonDocument doc(256);
-    bool ok = (t != DEVICE_DISCONNECTED_C);
-    if (ok) doc["temperature"] = t; else doc["temperature"] = nullptr;
-    doc["ok"] = ok;
+    float t = bmp280_readTemperature();
+    float p = bmp280_readPressure();
+    float alt = bmp280_readAltitude();
+    DynamicJsonDocument doc(384);
+    doc["temperature"] = t;
+    doc["pressure"] = p;
+    doc["altitude"] = alt;
+    doc["ok"] = true;
     doc["timestamp"] = currentTimestamp();
     String out; serializeJson(doc, out); return out;
 }
@@ -124,11 +126,14 @@ static String jsonGPS() {
 }
 
 static String jsonAll() {
-    float t = ds18_readTemperature();
+    float t = bmp280_readTemperature();
+    float p = bmp280_readPressure();
+    float alt = bmp280_readAltitude();
     DynamicJsonDocument doc(768);
-    bool ok = (t != DEVICE_DISCONNECTED_C);
-    if (ok) doc["temperature"] = t; else doc["temperature"] = nullptr;
-    doc["temperature_ok"] = ok;
+    doc["temperature"] = t;
+    doc["pressure"] = p;
+    doc["altitude"] = alt;
+    doc["temperature_ok"] = true;
 
     JsonObject g = doc.createNestedObject("gps");
     if (gps.location.isValid()) {
@@ -167,17 +172,19 @@ static String exportJSON() {
         int idx3 = line.indexOf(',', idx2 + 1);
         int idx4 = line.indexOf(',', idx3 + 1);
         int idx5 = line.indexOf(',', idx4 + 1);
-        if (idx1 < 0 || idx2 < 0 || idx3 < 0 || idx4 < 0 || idx5 < 0) continue;
+        int idx6 = line.indexOf(',', idx5 + 1);
+        if (idx1 < 0 || idx2 < 0 || idx3 < 0 || idx4 < 0 || idx5 < 0 || idx6 < 0) continue;
         JsonObject o = arr.createNestedObject();
         o["timestamp"] = line.substring(0, idx1);
         o["temperature"] = line.substring(idx1 + 1, idx2).toFloat();
-        String lat = line.substring(idx2 + 1, idx3);
-        String lng = line.substring(idx3 + 1, idx4);
+        o["pressure"] = line.substring(idx2 + 1, idx3).toFloat();
+        String lat = line.substring(idx3 + 1, idx4);
+        String lng = line.substring(idx4 + 1, idx5);
         if (lat.length()) o["lat"] = lat.toFloat(); else o["lat"] = nullptr;
         if (lng.length()) o["lng"] = lng.toFloat(); else o["lng"] = nullptr;
-        String sats = line.substring(idx4 + 1, idx5);
+        String sats = line.substring(idx5 + 1, idx6);
         o["satellites"] = sats.length() ? sats.toInt() : -1;
-        String fix = line.substring(idx5 + 1);
+        String fix = line.substring(idx6 + 1);
         fix.trim();
         o["fix"] = (fix == "1");
     }

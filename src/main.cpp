@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "gps.h"
-#include "ds18b20.h"
+#include "bmp280.h"
 #include "web_server.h"
 #include "sd_card.h"
 
@@ -24,7 +24,7 @@ void setup() {
     }
 
     gps_init();
-    ds18_init();
+    bmp280_init();
     webserver_begin();
 }
 
@@ -33,18 +33,19 @@ void loop() {
 
     if (millis() - lastPublish >= 1000) {
         lastPublish = millis();
-        float t = ds18_readTemperature();
+        float t = bmp280_readTemperature();
         log_measurement(t);
         // Debug serial opcional
         gps_printStatus();
-        ds18_printTemperature();
+        bmp280_printData();
     }
 
     // Log periódico no cartão SD
     if (sd_isAvailable() && millis() - lastSdLog >= SD_LOG_INTERVAL) {
         lastSdLog = millis();
         
-        float temp = ds18_readTemperature();
+        float temp = bmp280_readTemperature();
+        float pressure = bmp280_readPressure();
         double lat = gps.location.lat();
         double lon = gps.location.lng();
         int sats = gps.satellites.value();

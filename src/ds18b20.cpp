@@ -1,4 +1,4 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "ds18b20.h"
@@ -67,4 +67,4 @@ void ds18_printTemperature() {
     }
 #endif
     Serial.printf("🌡️  Temperatura: %.2f °C%s\n", t, SIMULATE_SENSORS ? " (simulado)" : "");
-}
+}*/
