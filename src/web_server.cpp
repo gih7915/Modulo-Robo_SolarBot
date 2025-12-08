@@ -7,6 +7,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include "bmp280.h"
+#include "mpu6050.h"
 #include "gps.h"
 #include "web_server.h"
 #include "config.h"
@@ -129,11 +130,22 @@ static String jsonAll() {
     float t = bmp280_readTemperature();
     float p = bmp280_readPressure();
     float alt = bmp280_readAltitude();
-    DynamicJsonDocument doc(768);
+    MPU6050_Data mpu_data = mpu6050_read();
+    
+    DynamicJsonDocument doc(1536);
     doc["temperature"] = t;
     doc["pressure"] = p;
     doc["altitude"] = alt;
     doc["temperature_ok"] = true;
+
+    JsonObject mpu = doc.createNestedObject("mpu6050");
+    mpu["accel_x"] = mpu_data.accel_x;
+    mpu["accel_y"] = mpu_data.accel_y;
+    mpu["accel_z"] = mpu_data.accel_z;
+    mpu["gyro_x"] = mpu_data.gyro_x;
+    mpu["gyro_y"] = mpu_data.gyro_y;
+    mpu["gyro_z"] = mpu_data.gyro_z;
+    mpu["temp"] = mpu_data.temperature;
 
     JsonObject g = doc.createNestedObject("gps");
     if (gps.location.isValid()) {
@@ -233,6 +245,19 @@ void webserver_begin() {
     });
     server.on("/api/gps", HTTP_GET, [](AsyncWebServerRequest *req){
         req->send(200, "application/json", jsonGPS());
+    });
+    server.on("/api/mpu6050", HTTP_GET, [](AsyncWebServerRequest *req){
+        MPU6050_Data data = mpu6050_read();
+        DynamicJsonDocument doc(384);
+        doc["accel_x"] = data.accel_x;
+        doc["accel_y"] = data.accel_y;
+        doc["accel_z"] = data.accel_z;
+        doc["gyro_x"] = data.gyro_x;
+        doc["gyro_y"] = data.gyro_y;
+        doc["gyro_z"] = data.gyro_z;
+        doc["temperature"] = data.temperature;
+        String out; serializeJson(doc, out);
+        req->send(200, "application/json", out);
     });
     server.on("/api/all", HTTP_GET, [](AsyncWebServerRequest *req){
         req->send(200, "application/json", jsonAll());

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "gps.h"
 #include "bmp280.h"
+#include "mpu6050.h"
 #include "web_server.h"
 #include "sd_card.h"
 
@@ -25,6 +26,7 @@ void setup() {
 
     gps_init();
     bmp280_init();
+    mpu6050_init();
     webserver_begin();
 }
 
@@ -38,6 +40,7 @@ void loop() {
         // Debug serial opcional
         gps_printStatus();
         bmp280_printData();
+        mpu6050_printData();
     }
 
     // Log periódico no cartão SD

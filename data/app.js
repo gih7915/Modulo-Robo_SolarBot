@@ -73,6 +73,15 @@ function fetchAll() {
       document.getElementById('gpsSat').textContent = satVal;
       document.getElementById('gpsUTC').textContent = gps.utc || '--';
       document.getElementById('lastUpdate').textContent = data.timestamp || '--';
+      
+      // MPU6050
+      const mpu = data.mpu6050 || {};
+      document.getElementById('accelX').textContent = mpu.accel_x !== undefined ? mpu.accel_x : '--';
+      document.getElementById('accelY').textContent = mpu.accel_y !== undefined ? mpu.accel_y : '--';
+      document.getElementById('accelZ').textContent = mpu.accel_z !== undefined ? mpu.accel_z : '--';
+      document.getElementById('gyroX').textContent = mpu.gyro_x !== undefined ? mpu.gyro_x : '--';
+      document.getElementById('gyroY').textContent = mpu.gyro_y !== undefined ? mpu.gyro_y : '--';
+      document.getElementById('gyroZ').textContent = mpu.gyro_z !== undefined ? mpu.gyro_z : '--';
     })
     .catch(err => console.error('Erro fetch /api/all', err));
 }
