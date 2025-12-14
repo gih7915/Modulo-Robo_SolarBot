@@ -1,3 +1,16 @@
+let map;
+let mapMarker;
+let hasCentered = false;
+
+function ensureMap() {
+  if (map) return;
+  map = L.map('map', { zoomControl: true }).setView([0, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contribuintes',
+    maxZoom: 19,
+  }).addTo(map);
+}
+
 function fetchAll() {
   fetch('/api/all')
     .then(r => r.json())
@@ -73,6 +86,20 @@ function fetchAll() {
       document.getElementById('gpsSat').textContent = satVal;
       document.getElementById('gpsUTC').textContent = gps.utc || '--';
       document.getElementById('lastUpdate').textContent = data.timestamp || '--';
+
+      if (hasCoords) {
+        ensureMap();
+        if (!mapMarker) {
+          mapMarker = L.marker([gps.lat, gps.lng]).addTo(map);
+        } else {
+          mapMarker.setLatLng([gps.lat, gps.lng]);
+        }
+        if (!hasCentered) {
+          map.setView([gps.lat, gps.lng], 15);
+          hasCentered = true;
+          setTimeout(() => map.invalidateSize(), 200);
+        }
+      }
       
       // MPU6050
       const mpu = data.mpu6050 || {};

@@ -6,11 +6,11 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
-#include "bmp280.h"
-#include "mpu6050.h"
-#include "gps.h"
+#include "../sensors/bmp280.h"
+#include "../sensors/mpu6050.h"
+#include "../sensors/gps.h"
 #include "web_server.h"
-#include "config.h"
+#include "../config.h"
 
 static AsyncWebServer server(80);
 static const char *LOG_FILE = "/logs.csv";

@@ -1,5 +1,5 @@
 #include "sd_card.h"
-#include "config.h"
+#include "../config.h"
 #include <SD.h>
 #include <SPI.h>
 

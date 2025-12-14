@@ -254,6 +254,14 @@ header {
     background-color: #2980b9;
 }
 
+.map {
+    width: 100%;
+    height: 320px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    margin-bottom: 12px;
+}
+
 .mpu-section {
     margin-top: 30px;
     background-color: white;
@@ -308,5 +316,9 @@ header {
     .company-logo {
         height: 30px;
         max-width: 120px;
+    }
+
+    .map {
+        height: 240px;
     }
 }

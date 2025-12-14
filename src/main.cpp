@@ -1,9 +1,9 @@
 #include <Arduino.h>
-#include "gps.h"
-#include "bmp280.h"
-#include "mpu6050.h"
-#include "web_server.h"
-#include "sd_card.h"
+#include "sensors/gps.h"
+#include "sensors/bmp280.h"
+#include "sensors/mpu6050.h"
+#include "network/web_server.h"
+#include "storage/sd_card.h"
 
 unsigned long lastPublish = 0;
 unsigned long lastSdLog = 0;

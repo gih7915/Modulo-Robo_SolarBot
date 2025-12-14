@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "mpu6050.h"
-#include "config.h"
+#include "../config.h"
 
 #define MPU6050_ADDR 0x68
 #define PWR_MGMT_1 0x6B

@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
 #include "bmp280.h"
-#include "config.h"
+#include "../config.h"
 
 Adafruit_BMP280 bmp; // I2C
 

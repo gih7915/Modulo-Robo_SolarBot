@@ -1,5 +1,5 @@
 #include "gps.h"
-#include "config.h"
+#include "../config.h"
 //ordem dos pinos: GND, VCC, RX, TX
 TinyGPSPlus gps;
 
