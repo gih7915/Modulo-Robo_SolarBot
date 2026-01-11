@@ -8,8 +8,8 @@
 #define WIFI_USE_STA 1
 
 // Credenciais para STA (quando WIFI_USE_STA = 1)
-#define WIFI_STA_SSID "AP-ACESS SS"
-#define WIFI_STA_PASS "Fin@ApointBlH"
+#define WIFI_STA_SSID "Dianna-Giovana-Leo"
+#define WIFI_STA_PASS "Giovana18"
 
 // Credenciais para Access Point (quando WIFI_USE_STA = 0 ou fallback)
 #define WIFI_AP_SSID  "gih"

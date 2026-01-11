@@ -3,26 +3,26 @@
 #include "sensors/bmp280.h"
 #include "sensors/mpu6050.h"
 #include "network/web_server.h"
-#include "storage/sd_card.h"
+// #include "storage/sd_card.h"  // SD desabilitado temporariamente
 
 unsigned long lastPublish = 0;
-unsigned long lastSdLog = 0;
-const unsigned long SD_LOG_INTERVAL = 5000; // Log no SD a cada 5 segundos
+// unsigned long lastSdLog = 0;
+// const unsigned long SD_LOG_INTERVAL = 5000; // Log no SD a cada 5 segundos
 
 void setup() {
     Serial.begin(115200);
     delay(500);
     Serial.println("Boot...");
 
-    // Inicializa o cartão SD
-    if (sd_init()) {
-        Serial.println("✓ Cartão SD pronto para uso");
-        
-        // Executa testes completos (comentar após os testes iniciais)
-        sd_testCardFunctions();
-    } else {
-        Serial.println("⚠ Sistema continuará sem cartão SD");
-    }
+    // Inicializa o cartão SD - DESABILITADO
+    // if (sd_init()) {
+    //     Serial.println("✓ Cartão SD pronto para uso");
+    //     
+    //     // Executa testes completos (comentar após os testes iniciais)
+    //     sd_testCardFunctions();
+    // } else {
+    //     Serial.println("⚠ Sistema continuará sem cartão SD");
+    // }
 
     gps_init();
     bmp280_init();
@@ -43,19 +43,19 @@ void loop() {
         mpu6050_printData();
     }
 
-    // Log periódico no cartão SD
-    if (sd_isAvailable() && millis() - lastSdLog >= SD_LOG_INTERVAL) {
-        lastSdLog = millis();
-        
-        float temp = bmp280_readTemperature();
-        float pressure = bmp280_readPressure();
-        double lat = gps.location.lat();
-        double lon = gps.location.lng();
-        int sats = gps.satellites.value();
-        float alt = gps.altitude.meters();
-        
-        if (sd_logSensorData(temp, lat, lon, sats, alt)) {
-            Serial.println("✓ Dados salvos no SD");
-        }
-    }
+    // Log periódico no cartão SD - DESABILITADO
+    // if (sd_isAvailable() && millis() - lastSdLog >= SD_LOG_INTERVAL) {
+    //     lastSdLog = millis();
+    //     
+    //     float temp = bmp280_readTemperature();
+    //     float pressure = bmp280_readPressure();
+    //     double lat = gps.location.lat();
+    //     double lon = gps.location.lng();
+    //     int sats = gps.satellites.value();
+    //     float alt = gps.altitude.meters();
+    //     
+    //     if (sd_logSensorData(temp, lat, lon, sats, alt)) {
+    //         Serial.println("✓ Dados salvos no SD");
+    //     }
+    // }
 }
