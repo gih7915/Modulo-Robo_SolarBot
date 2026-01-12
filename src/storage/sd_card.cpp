@@ -313,23 +313,31 @@ bool sd_logSensorData(float temperature, double latitude, double longitude,
         return false;
     }
     
-    // Cria o arquivo se não existir, com cabeçalho
+    // Cria o arquivo se não existir, com cabeçalho formatado
     File file = SD.open("/sensor_log.csv");
     if (!file) {
-        // Arquivo não existe, cria com cabeçalho
-        sd_writeFile("/sensor_log.csv", "timestamp,temperature,latitude,longitude,satellites,altitude\n");
+        // Arquivo não existe, cria com cabeçalho usando ponto e vírgula como separador
+        sd_writeFile("/sensor_log.csv", 
+            "Hora;Milisegundos;Temperatura (C);Latitude;Longitude;Satelites;Altitude (m)\n");
     } else {
         file.close();
     }
-    
-    // Prepara a linha de dados
-    char dataLine[200];
+
+    // Prepara a linha de dados com separador ponto e vírgula
+    char dataLine[250];
     unsigned long timestamp = millis();
-    
+
+    // Calcula segundos e converte para HH:MM:SS
+    unsigned long seconds = timestamp / 1000;
+    unsigned long hours = (seconds / 3600) % 24;
+    unsigned long minutes = (seconds / 60) % 60;
+    unsigned long secs = seconds % 60;
+    unsigned long ms = timestamp % 1000;
+
     snprintf(dataLine, sizeof(dataLine), 
-             "%lu,%.2f,%.6f,%.6f,%d,%.2f\n",
-             timestamp, temperature, latitude, longitude, satellites, altitude);
-    
+             "%02lu:%02lu:%02lu;%03lu;%.1f;%.6f;%.6f;%d;%.1f\n",
+             hours, minutes, secs, ms, temperature, latitude, longitude, satellites, altitude);
+
     // Adiciona ao arquivo
     return sd_appendFile("/sensor_log.csv", dataLine);
 }
