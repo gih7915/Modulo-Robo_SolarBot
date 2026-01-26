@@ -2,6 +2,7 @@
 #include "sensors/gps.h"
 #include "sensors/bmp280.h"
 #include "sensors/mpu6050.h"
+#include "sensors/ina226.h"
 #include "network/web_server.h"
 #include "storage/sd_card.h"
 
@@ -27,6 +28,7 @@ void setup() {
     gps_init();
     bmp280_init();
     mpu6050_init();
+    ina226_init();
     webserver_begin();
 }
 
@@ -36,11 +38,13 @@ void loop() {
     if (millis() - lastPublish >= 1000) {
         lastPublish = millis();
         float t = bmp280_readTemperature();
-        log_measurement(t);
+        float v = ina226_readBusVoltage();
+        log_measurement(t, v);
         // Debug serial opcional
         gps_printStatus();
         bmp280_printData();
         mpu6050_printData();
+        ina226_printData();
     }
 
     // Log periódico no cartão SD
@@ -54,7 +58,8 @@ void loop() {
         int sats = gps.satellites.value();
         float alt = gps.altitude.meters();
         
-        if (sd_logSensorData(temp, lat, lon, sats, alt)) {
+        float voltage = ina226_readBusVoltage();
+        if (sd_logSensorData(temp, voltage, lat, lon, sats, alt)) {
             Serial.println("✓ Dados salvos no SD");
         }
     }

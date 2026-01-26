@@ -4,12 +4,19 @@
 // Ativar simulação de sensores (1 = simular, 0 = hardware real)
 #define SIMULATE_SENSORS 0
 
+// Fator do divisor resistivo do INA226: V_real = V_medida * INA226_BUS_DIVIDER
+#define INA226_BUS_DIVIDER 3.0f
+
 // 0 = modo Access Point; 1 = conectar no roteador (STA)
 #define WIFI_USE_STA 1
 
 // Credenciais para STA (quando WIFI_USE_STA = 1)
-#define WIFI_STA_SSID "Dianna-Giovana-Leo"
-#define WIFI_STA_PASS "Giovana18"
+#define WIFI_STA_SSID "AP-ACCESS SS"
+#define WIFI_STA_PASS "Fin@ApointBlH"
+//#define WIFI_STA_SSID "Gih"
+//#define WIFI_STA_PASS "giovana18"
+//#define WIFI_STA_SSID "Dianna-Giovana-Leo"
+//#define WIFI_STA_PASS "Giovana18"
 
 // Credenciais para Access Point (quando WIFI_USE_STA = 0 ou fallback)
 #define WIFI_AP_SSID  "gih"

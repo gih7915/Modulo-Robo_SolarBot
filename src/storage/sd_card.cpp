@@ -307,7 +307,7 @@ void sd_testCardFunctions() {
     Serial.println("\n=== FIM DOS TESTES ===\n");
 }
 
-bool sd_logSensorData(float temperature, double latitude, double longitude, 
+bool sd_logSensorData(float temperature, float voltage, double latitude, double longitude, 
                       int satellites, float altitude) {
     if (!sdAvailable) {
         return false;
@@ -318,7 +318,7 @@ bool sd_logSensorData(float temperature, double latitude, double longitude,
     if (!file) {
         // Arquivo não existe, cria com cabeçalho usando ponto e vírgula como separador
         sd_writeFile("/sensor_log.csv", 
-            "Hora;Milisegundos;Temperatura (C);Latitude;Longitude;Satelites;Altitude (m)\n");
+            "Hora;Milisegundos;Temperatura (C);Tensao (V);Latitude;Longitude;Satelites;Altitude (m)\n");
     } else {
         file.close();
     }
@@ -335,8 +335,9 @@ bool sd_logSensorData(float temperature, double latitude, double longitude,
     unsigned long ms = timestamp % 1000;
 
     snprintf(dataLine, sizeof(dataLine), 
-             "%02lu:%02lu:%02lu;%03lu;%.1f;%.6f;%.6f;%d;%.1f\n",
-             hours, minutes, secs, ms, temperature, latitude, longitude, satellites, altitude);
+             "%02lu:%02lu:%02lu;%03lu;%.2f;%.3f;%.6f;%.6f;%d;%.1f\n",
+             hours, minutes, secs, ms, temperature, isnan(voltage) ? 0.0f : voltage,
+             latitude, longitude, satellites, altitude);
 
     // Adiciona ao arquivo
     return sd_appendFile("/sensor_log.csv", dataLine);

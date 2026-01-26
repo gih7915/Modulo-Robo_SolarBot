@@ -35,6 +35,27 @@ function fetchAll() {
           }
         }
       }
+
+      // Tensão
+      const vEl = document.getElementById('voltageValue');
+      if (data.voltage !== null && data.voltage !== undefined) {
+        const prev = parseFloat(vEl.textContent);
+        vEl.textContent = parseFloat(data.voltage).toFixed(3);
+        const trendEl = document.getElementById('voltageTrend');
+        if (!isNaN(prev)) {
+          const diff = data.voltage - prev;
+          if (Math.abs(diff) < 0.01) {
+            trendEl.textContent = 'Estável';
+            trendEl.className = 'metric-trend';
+          } else if (diff > 0) {
+            trendEl.textContent = '+' + diff.toFixed(3) + ' V';
+            trendEl.className = 'metric-trend trend-up';
+          } else {
+            trendEl.textContent = diff.toFixed(3) + ' V';
+            trendEl.className = 'metric-trend trend-down';
+          }
+        }
+      }
       
       // Pressão
       const pEl = document.getElementById('pressureValue');
@@ -126,7 +147,7 @@ function loadHistory() {
       rows.forEach(line => {
         const cols = line.split(',');
         const tr = document.createElement('tr');
-        // timestamp,temperature,pressure,lat,lng,satellites,fix
+        // timestamp,temperature,voltage,pressure,lat,lng,satellites,fix
         for (let i = 0; i < cols.length; i++) {
           const td = document.createElement('td');
           const raw = cols[i];

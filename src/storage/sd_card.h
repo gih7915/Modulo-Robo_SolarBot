@@ -40,7 +40,7 @@ void sd_printCardInfo();
 void sd_testCardFunctions();
 
 // Salva dados de sensores no formato CSV
-bool sd_logSensorData(float temperature, double latitude, double longitude, 
+bool sd_logSensorData(float temperature, float voltage, double latitude, double longitude, 
                       int satellites, float altitude);
 
 #endif

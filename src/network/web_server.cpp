@@ -9,6 +9,7 @@
 #include "../sensors/bmp280.h"
 #include "../sensors/mpu6050.h"
 #include "../sensors/gps.h"
+#include "../sensors/ina226.h"
 #include "web_server.h"
 #include "../config.h"
 
@@ -54,11 +55,11 @@ static String currentTimestamp() {
 }
 
 // Log em CSV (cria cabeçalho se não existir)
-void log_measurement(float temperature) {
+void log_measurement(float temperature, float voltage) {
     if (!LittleFS.exists(LOG_FILE)) {
         File f = LittleFS.open(LOG_FILE, "w");
         if (f) {
-            f.println("timestamp,temperature,pressure,lat,lng,satellites,fix");
+            f.println("timestamp,temperature,pressure,lat,lng,satellites,fix,voltage");
             f.close();
         }
     }
@@ -85,6 +86,10 @@ void log_measurement(float temperature) {
     }
     line += ",";
     line += gps.location.isValid() ? "1" : "0";
+    line += ",";
+    if (!isnan(voltage)) {
+        line += String(voltage, 3);
+    }
     line += "\n";
     f.print(line);
     f.close();
@@ -94,11 +99,17 @@ static String jsonTemperature() {
     float t = bmp280_readTemperature();
     float p = bmp280_readPressure();
     float alt = bmp280_readAltitude();
+    float v = ina226_readBusVoltage();
     DynamicJsonDocument doc(384);
     doc["temperature"] = t;
     doc["pressure"] = p;
     doc["altitude"] = alt;
     doc["ok"] = true;
+    if (isnan(v)) {
+        doc["voltage"] = nullptr;
+    } else {
+        doc["voltage"] = v;
+    }
     doc["timestamp"] = currentTimestamp();
     String out; serializeJson(doc, out); return out;
 }
@@ -130,15 +141,21 @@ static String jsonAll() {
     float t = bmp280_readTemperature();
     float p = bmp280_readPressure();
     float alt = bmp280_readAltitude();
+    float v = ina226_readBusVoltage();
     MPU6050_Data mpu_data = mpu6050_read();
     
     DynamicJsonDocument doc(1536);
     doc["temperature"] = t;
     doc["pressure"] = p;
     doc["altitude"] = alt;
+    if (isnan(v)) {
+        doc["voltage"] = nullptr;
+    } else {
+        doc["voltage"] = v;
+    }
     doc["temperature_ok"] = true;
 
-    JsonObject mpu = doc.createNestedObject("mpu6050");
+    JsonObject mpu = doc["mpu6050"].to<JsonObject>();
     mpu["accel_x"] = mpu_data.accel_x;
     mpu["accel_y"] = mpu_data.accel_y;
     mpu["accel_z"] = mpu_data.accel_z;
@@ -147,7 +164,7 @@ static String jsonAll() {
     mpu["gyro_z"] = mpu_data.gyro_z;
     mpu["temp"] = mpu_data.temperature;
 
-    JsonObject g = doc.createNestedObject("gps");
+    JsonObject g = doc["gps"].to<JsonObject>();
     if (gps.location.isValid()) {
         g["lat"] = gps.location.lat();
         g["lng"] = gps.location.lng();
@@ -185,8 +202,9 @@ static String exportJSON() {
         int idx4 = line.indexOf(',', idx3 + 1);
         int idx5 = line.indexOf(',', idx4 + 1);
         int idx6 = line.indexOf(',', idx5 + 1);
-        if (idx1 < 0 || idx2 < 0 || idx3 < 0 || idx4 < 0 || idx5 < 0 || idx6 < 0) continue;
-        JsonObject o = arr.createNestedObject();
+        int idx7 = line.indexOf(',', idx6 + 1);
+        if (idx1 < 0 || idx2 < 0 || idx3 < 0 || idx4 < 0 || idx5 < 0 || idx6 < 0 || idx7 < 0) continue;
+        JsonObject o = arr.add<JsonObject>();
         o["timestamp"] = line.substring(0, idx1);
         o["temperature"] = line.substring(idx1 + 1, idx2).toFloat();
         o["pressure"] = line.substring(idx2 + 1, idx3).toFloat();
@@ -196,9 +214,16 @@ static String exportJSON() {
         if (lng.length()) o["lng"] = lng.toFloat(); else o["lng"] = nullptr;
         String sats = line.substring(idx5 + 1, idx6);
         o["satellites"] = sats.length() ? sats.toInt() : -1;
-        String fix = line.substring(idx6 + 1);
+        String fix = line.substring(idx6 + 1, idx7);
         fix.trim();
         o["fix"] = (fix == "1");
+        String volt = line.substring(idx7 + 1);
+        volt.trim();
+        if (volt.length()) {
+            o["voltage"] = volt.toFloat();
+        } else {
+            o["voltage"] = nullptr;
+        }
     }
     f.close();
     String out; serializeJson(arr, out); return out;
@@ -237,9 +262,7 @@ void webserver_begin() {
     apOk = startAP();
 #endif
 
-    // Arquivos estáticos; index.html como default
-    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
-
+    // Configurar rotas de API ANTES dos arquivos estáticos
     server.on("/api/temperature", HTTP_GET, [](AsyncWebServerRequest *req){
         req->send(200, "application/json", jsonTemperature());
     });
@@ -280,6 +303,13 @@ void webserver_begin() {
             req->send(400, "application/json", "{\"error\":\"format invalido\"}");
         }
     });
+    
+    server.on("/api/robot/stats", HTTP_GET, [](AsyncWebServerRequest *req){
+        req->send(200, "application/json", jsonAll());
+    });
+
+    // Arquivos estáticos POR ÚLTIMO; index.html como default
+    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
     server.onNotFound([](AsyncWebServerRequest *req){
         req->send(404, "text/plain", "Not Found");
