@@ -10,6 +10,7 @@
 #include "../sensors/mpu6050.h"
 #include "../sensors/gps.h"
 #include "../sensors/ina226.h"
+#include "../sensors/acs758.h"
 #include "web_server.h"
 #include "../config.h"
 
@@ -55,11 +56,11 @@ static String currentTimestamp() {
 }
 
 // Log em CSV (cria cabeçalho se não existir)
-void log_measurement(float temperature, float voltage) {
+void log_measurement(float temperature, float voltage, float current) {
     if (!LittleFS.exists(LOG_FILE)) {
         File f = LittleFS.open(LOG_FILE, "w");
         if (f) {
-            f.println("timestamp,temperature,pressure,lat,lng,satellites,fix,voltage");
+            f.println("timestamp,temperature,pressure,lat,lng,satellites,fix,voltage,current");
             f.close();
         }
     }
@@ -90,6 +91,10 @@ void log_measurement(float temperature, float voltage) {
     if (!isnan(voltage)) {
         line += String(voltage, 3);
     }
+    line += ",";
+    if (!isnan(current)) {
+        line += String(current, 3);
+    }
     line += "\n";
     f.print(line);
     f.close();
@@ -100,6 +105,7 @@ static String jsonTemperature() {
     float p = bmp280_readPressure();
     float alt = bmp280_readAltitude();
     float v = ina226_readBusVoltage();
+    float c = acs758_readCurrentA();
     DynamicJsonDocument doc(384);
     doc["temperature"] = t;
     doc["pressure"] = p;
@@ -109,6 +115,11 @@ static String jsonTemperature() {
         doc["voltage"] = nullptr;
     } else {
         doc["voltage"] = v;
+    }
+    if (isnan(c)) {
+        doc["current"] = nullptr;
+    } else {
+        doc["current"] = c;
     }
     doc["timestamp"] = currentTimestamp();
     String out; serializeJson(doc, out); return out;
@@ -142,6 +153,7 @@ static String jsonAll() {
     float p = bmp280_readPressure();
     float alt = bmp280_readAltitude();
     float v = ina226_readBusVoltage();
+    float c = acs758_readCurrentA();
     MPU6050_Data mpu_data = mpu6050_read();
     
     DynamicJsonDocument doc(1536);
@@ -152,6 +164,11 @@ static String jsonAll() {
         doc["voltage"] = nullptr;
     } else {
         doc["voltage"] = v;
+    }
+    if (isnan(c)) {
+        doc["current"] = nullptr;
+    } else {
+        doc["current"] = c;
     }
     doc["temperature_ok"] = true;
 
@@ -203,6 +220,7 @@ static String exportJSON() {
         int idx5 = line.indexOf(',', idx4 + 1);
         int idx6 = line.indexOf(',', idx5 + 1);
         int idx7 = line.indexOf(',', idx6 + 1);
+        int idx8 = line.indexOf(',', idx7 + 1);
         if (idx1 < 0 || idx2 < 0 || idx3 < 0 || idx4 < 0 || idx5 < 0 || idx6 < 0 || idx7 < 0) continue;
         JsonObject o = arr.add<JsonObject>();
         o["timestamp"] = line.substring(0, idx1);
@@ -217,12 +235,25 @@ static String exportJSON() {
         String fix = line.substring(idx6 + 1, idx7);
         fix.trim();
         o["fix"] = (fix == "1");
-        String volt = line.substring(idx7 + 1);
+        String volt;
+        String curr;
+        if (idx8 > 0) {
+            volt = line.substring(idx7 + 1, idx8);
+            curr = line.substring(idx8 + 1);
+        } else {
+            volt = line.substring(idx7 + 1);
+        }
         volt.trim();
         if (volt.length()) {
             o["voltage"] = volt.toFloat();
         } else {
             o["voltage"] = nullptr;
+        }
+        curr.trim();
+        if (curr.length()) {
+            o["current"] = curr.toFloat();
+        } else {
+            o["current"] = nullptr;
         }
     }
     f.close();
