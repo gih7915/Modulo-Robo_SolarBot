@@ -1,3 +1,7 @@
+//Modulo SSD CARD
+//Fica salvo numa planilha EXCEL todos os dados dos sensores
+//Nao esquecer de mudar a variavel de ambiente do VSCode para funcionar
+
 #include "sd_card.h"
 #include "../config.h"
 #include <SD.h>

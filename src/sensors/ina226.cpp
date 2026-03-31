@@ -1,22 +1,18 @@
+//Sensor INA226
+//Utilizando divisor de tensão (10k 10k 10k)
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <INA226.h>
 #include "ina226.h"
 #include "../config.h"
 
-// Endereço padrão do INA226. Ajuste se o seu ADDR estiver ligado diferente.
+// Endereço padrão do INA226
 static INA226 ina226(0x40);
 static bool inaReady = false;
 
 void ina226_init() {
     Serial.println("\n--- Inicializando INA226 (tensão) ---");
-
-#if SIMULATE_SENSORS
-    Serial.println("⚠️  MODO SIMULAÇÃO ATIVO - Dados fictícios");
-    Serial.println("Sensor simulado: INA226 Virtual (somente tensão)");
-    inaReady = true;
-    return;
-#else
     // Inicializa diretamente o driver, configurando os pinos I2C padrão
     if (!ina226.begin(21, 22)) {
         Serial.println("❌ INA226 não encontrado!");
@@ -37,16 +33,9 @@ void ina226_init() {
 
     inaReady = true;
     Serial.println("✓ INA226 pronto para medir tensão do barramento");
-#endif
 }
 
 float ina226_readBusVoltage() {
-#if SIMULATE_SENSORS
-    // Simula uma bateria entre 11.8 V e 12.6 V oscilando lentamente
-    float base = 12.2f;
-    float swing = 0.4f * sin(millis() / 15000.0f);
-    return base + swing;
-#else
     if (!inaReady) {
         return NAN;
     }
@@ -55,7 +44,6 @@ float ina226_readBusVoltage() {
         return NAN;
     }
     return v * INA226_BUS_DIVIDER;
-#endif
 }
 
 void ina226_printData() {
@@ -65,12 +53,6 @@ void ina226_printData() {
         Serial.println("Tensão indisponível");
     } else {
         Serial.printf("Tensão real (ajustada x%.2f): %.3f V\n", INA226_BUS_DIVIDER, v);
-#if !SIMULATE_SENSORS
         Serial.printf("Leitura direta (dividida): %.3f V\n", v / INA226_BUS_DIVIDER);
-#endif
     }
-
-#if SIMULATE_SENSORS
-    Serial.println("(Dados simulados)");
-#endif
 }

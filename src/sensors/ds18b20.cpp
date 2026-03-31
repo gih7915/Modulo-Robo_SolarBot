@@ -1,3 +1,5 @@
+//Sensor de Temperatura em pausa(Sensor não funcionando)
+
 /*#include <Arduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
