@@ -173,7 +173,3 @@ No boot, o serial imprime os IPs para acesso ao dashboard.
 - Trocar `DynamicJsonDocument` por `JsonDocument` (ArduinoJson v7) para remover warnings.
 - Criar rotina de calibracao guiada para ACS758.
 - Persistir configuracao Wi-Fi/offset dos sensores em arquivo de configuracao.
-
-## Licenca
-
-Defina a licenca desejada para o repositorio (ex.: MIT) e adicione um arquivo `LICENSE`.
